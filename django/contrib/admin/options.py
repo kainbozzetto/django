@@ -1386,6 +1386,18 @@ class ModelAdmin(BaseModelAdmin):
                 initial[k] = initial[k].split(",")
         return initial
 
+    def get_post_list(self, request):
+        ids = []
+        id = 0;
+        while True:
+            pk = request.POST.get('form-{}-id'.format(id))
+            if pk:
+                ids.append(pk)
+                id += 1
+            else:
+                break
+        return self.get_queryset(request).filter(id__in=ids)
+
     def _get_obj_does_not_exist_redirect(self, request, opts, object_id):
         """
         Create a message informing the user that the object doesn't exist
@@ -1598,7 +1610,8 @@ class ModelAdmin(BaseModelAdmin):
         # Handle POSTed bulk-edit data.
         if request.method == 'POST' and cl.list_editable and '_save' in request.POST:
             FormSet = self.get_changelist_formset(request)
-            formset = cl.formset = FormSet(request.POST, request.FILES, queryset=self.get_queryset(request))
+            post_list = self.get_post_list(request)
+            formset = cl.formset = FormSet(request.POST, request.FILES, queryset=post_list)
             if formset.is_valid():
                 changecount = 0
                 for form in formset.forms:
