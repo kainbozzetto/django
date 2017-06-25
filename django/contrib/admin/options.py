@@ -1386,7 +1386,11 @@ class ModelAdmin(BaseModelAdmin):
                 initial[k] = initial[k].split(",")
         return initial
 
-    def get_post_list(self, request):
+    def get_post_queryset(self, request):
+        """
+        Return a QuerySet of model instances that matches the
+        ids in the form data.
+        """
         ids = []
         id = 0;
         while True:
@@ -1610,8 +1614,8 @@ class ModelAdmin(BaseModelAdmin):
         # Handle POSTed bulk-edit data.
         if request.method == 'POST' and cl.list_editable and '_save' in request.POST:
             FormSet = self.get_changelist_formset(request)
-            post_list = self.get_post_list(request)
-            formset = cl.formset = FormSet(request.POST, request.FILES, queryset=post_list)
+            post_queryset = self.get_post_queryset(request)
+            formset = cl.formset = FormSet(request.POST, request.FILES, queryset=post_queryset)
             if formset.is_valid():
                 changecount = 0
                 for form in formset.forms:
